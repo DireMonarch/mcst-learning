@@ -24,10 +24,7 @@ def play_random(game:Tic_Tac_Toe):
 def play_mcst(game:Tic_Tac_Toe):
     tree = mcst.MCST(GLOBAL_C,game)
 
-    p = 1
-    for _ in range(1000):
-        tree.train(p)
-        p = -p
+    tree.train(1, 1000)
 
     while game.winner == None and len(game.valid_moves()) > 0:
         pick = -1
@@ -60,11 +57,29 @@ def play_mcst(game:Tic_Tac_Toe):
         
     
 
+def auto_play(count):
+    for _ in range(count):
+        game = Tic_Tac_Toe()
+        tree = mcst.MCST(GLOBAL_C, game)
+        
+        current_player = 1
+        while game.winner == None:
+            tree.train(current_player, 1000)
+            move = tree.best_current_move()
+            game.move(move, current_player)
+            next = tree.get_current_child(move)
+            tree.current = next
+            current_player = -current_player
+            
+        print(game, game.winner)
+            
+
 def main():
     game = Tic_Tac_Toe()
 
     # play_random(game)
-    play_mcst(game)
+    # play_mcst(game)
+    auto_play(100)
         
     print(f'Winner is {game.winner}')
     

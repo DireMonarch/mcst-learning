@@ -4,6 +4,11 @@ import random
 from typing import Self
 
 
+UCT_WIN_VALUE = 25
+UCT_LOSE_VALUE = 0
+UCT_UNEXPLORED_VALUE = 5
+
+
 class MCST_Node:
     def __init__(self, parent:Self, c : float, game : Tic_Tac_Toe, player : int, move : tuple[int, int]):
         self.w : float = 0.0
@@ -24,8 +29,15 @@ class MCST_Node:
         return value + '\n\n'
         
     def UCT(self) -> int:
+        
+        if self.game.winner == self.player:
+            return UCT_WIN_VALUE
+        
+        if self.game.winner == -self.player:
+            return UCT_LOSE_VALUE
+        
         if self.n < 1:
-            return 5
+            return UCT_UNEXPLORED_VALUE
         if self.parent == None:
             return -1
         
@@ -71,13 +83,13 @@ class MCST:
                 if debug: print('here')
                 return None
             
-            result:float = self._simulation(player, choice)
+            simulation_winner:int = self._simulation(player, choice)
 
         else:
             choice = leaf
-            result = 0.5 if leaf.game.winner == 0 else 1.0 if leaf.game.winner == player else 0.0
+            simulation_winner = leaf.game.winner
         
-        self._backpropagation(player, choice, result)
+        self._backpropagation(simulation_winner, choice)
         
     def get_current_child(self, move:tuple[int,int]):
         for child in self.current.children:
@@ -125,27 +137,21 @@ class MCST:
         return None
     
     
-    def _simulation(self, player:int, chosen:MCST_Node, debug=False) -> float:
+    def _simulation(self, player:int, chosen:MCST_Node, debug=False) -> int:
         temp_game = chosen.game.deep_copy()
         temp_game.play_random(player)
         if debug: print(f'Player {player}, Winner {temp_game.winner}')
-        if temp_game.winner == 0:
-            return 0.5
-        if temp_game.winner == player:
-            return 1.0
-        return 0.0
+        return temp_game.winner
     
-    def _backpropagation(self, player:int, chosen:MCST_Node, value:float, debug=False):
+    def _backpropagation(self, winner:int, chosen:MCST_Node, debug=False):
         processing:MCST_Node = chosen
         if debug: print('\n\n')
         while processing != self.current.parent:
             processing.n += 1
-            if processing.player in [-1,1]:
-                if value > 0.9 and player == processing.player:
+            if winner != None:
+                if winner == processing.player:
                     processing.w += 1
-                elif value < 0.1 and player == -processing.player:
-                    processing.w += 1
-                else:
+                elif winner == 0:
                     processing.w += 0.5
             processing = processing.parent
             

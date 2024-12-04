@@ -11,8 +11,10 @@ def generate_gjgf(node:MCST_Node, levels, parent_id=None, graph:dict=None):
         }
     
     id = len(graph['graph']['nodes'])
-    color = '#ff8888' if node.player == 1 else '#8888ff' if node.player == -1 else '#88ff88'
-    graph['graph']['nodes'][id] = {'metadata': {'label': get_meta(node), 'color':color}}
+    color = '#ff8888' if node.player == 1 else '#8888ff' if node.player == -1 else '#ffffff'
+    if node.game.winner != None:
+        color = '#ff0000' if node.game.winner == 1 else '#00ff00'
+    graph['graph']['nodes'][id] = {'metadata': {'label': get_meta(node), 'color':color, 'click':f'{node.game}\n\n{node.game.winner}'}}
     if parent_id != None:
         graph['graph']['edges'].append({'source': parent_id, 'target':id, 'metadata':{'move': node.move}})
     
